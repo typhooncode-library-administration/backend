@@ -9,22 +9,23 @@ WORKDIR /app
 # Docker builds images incrementally, creating layers. If a file hasn't changed since the last build.
 # Docker can reuse the layer from its cache instead of re-copying the file and re-running the command.
 # The requirements.txt file typically changes infrequently, so Docker can often use the cache for this step.
-COPY ./requirements.txt /app/requirements.txt
+COPY requirements.txt requirements.txt
 
 # Install the Python dependencies specified in the requirements.txt file.
 # Since the previous step is cached, this step will also be cached if requirements.txt hasn't changed.
 # This caching saves time by avoiding the need to reinstall dependencies unnecessarily.
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Copy the rest of your application code into the working directory in the container.
 # This step is more likely to change, so it will usually not be cached.
 # By separating it from the dependencies, we ensure that dependency installation is only redone when necessary.
-COPY ../app /app
+COPY . /app
 
 # The port that this container should listen on at runtime
 EXPOSE 8000
 
 # Define the command to run your application using uvicorn.
 # This is the entry point of the application when the container starts.
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Restart server when "Watch Files" detects any changes in the app directory
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
